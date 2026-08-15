@@ -1,0 +1,30 @@
+---
+import Layout from '../layouts/Layout.astro';
+import TaskList from '../components/TaskList.astro';
+
+const title = 'Office Task Tracker';
+
+// Dynamic page: the task list is fetched client-side per request.
+export const prerender = false;
+---
+
+<Layout>
+  <main>
+    <header>
+      <h1>{title}</h1>
+      <p class="muted">Classified office tasks scraped from your inbox.</p>
+    </header>
+    <TaskList />
+  </main>
+</Layout>
+
+<style>
+  main {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+  }
+  header { margin-bottom: 1.5rem; }
+  h1 { margin: 0 0 0.25rem; font-size: 1.75rem; }
+  .muted { color: var(--muted); margin: 0; }
+</style>

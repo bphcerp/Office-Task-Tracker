@@ -1,0 +1,29 @@
+# Environment
+.env
+.env.*
+!.env.example
+
+# Python / uv
+__pycache__/
+*.py[cod]
+.venv/
+dist/
+build/
+*.egg-info/
+
+# Node / pnpm / Astro
+node_modules/
+.frontend/dist/
+frontend/dist/
+.pnpm-store/
+.turbo/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+*.swp
+
+# Docker
+docker-volumes/
+postgres-data/

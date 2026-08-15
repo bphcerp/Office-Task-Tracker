@@ -1,0 +1,33 @@
+---
+const { title = 'Office Task Tracker' } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <style>
+      :root {
+        --bg: #0f172a;
+        --panel: #1e293b;
+        --muted: #94a3b8;
+        --accent: #38bdf8;
+        --text: #e2e8f0;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+      a { color: var(--accent); }
+    </style>
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
