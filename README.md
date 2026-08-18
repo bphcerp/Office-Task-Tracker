@@ -149,15 +149,3 @@ curl -X POST http://localhost:8000/api/tasks/ingest -H 'Content-Type: applicatio
 | GET    | `/api/tasks`        | List classified tasks (newest first)     |
 | GET    | `/api/tasks/{id}`   | Fetch a single task                      |
 | POST   | `/api/tasks/ingest` | Manually scrape + classify emails        |
-
-## Current status
-
-This is an initial **boilerplate** commit. The end-to-end pipeline (app, models, API, Docker,
-env wiring) is in place, but the two core pieces are intentionally stubbed and live under
-`backend/app/services/`:
-
-- `mail.py` → `scrape_emails()` — add the real IMAP fetch logic.
-- `agent.py` → `classify_email()` — add the LiteLLM call that extracts Person / Task / Summary.
-
-Once implemented, the background job (or manual trigger) will persist classified tasks, and the
-frontend `TaskList` will display them.
