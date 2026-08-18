@@ -41,6 +41,7 @@ class Settings(BaseSettings):
     litellm_model: str = "openai/gpt-4o-mini"
     openai_api_key: str | None = None
     anthropic_api_key: str | None = None
+    groq_api_key: str | None = None
 
     @property
     def sqlalchemy_url(self) -> str:
