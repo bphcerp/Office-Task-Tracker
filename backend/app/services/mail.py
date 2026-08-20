@@ -111,7 +111,10 @@ def _scrape_emails_sync(limit: int) -> list[ScrapedEmail]:
         if not uids:
             return []
 
-        for uid in uids[-limit:]:
+        # the uids are ascending per message arrival,
+        # so a higher UID means the message arrived later.
+        # but the uids array may not be ascending, so we need to sort it.
+        for uid in sorted(uids)[-limit:]:
             # RFC822 implicitly sets \Seen on the server. We rely on that for now.
             # later on we might need a better system
             fetched = client.fetch([uid], ["RFC822", "ENVELOPE", "INTERNALDATE"])
