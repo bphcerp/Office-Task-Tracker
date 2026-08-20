@@ -29,6 +29,7 @@ class TaskOut(BaseModel):
     title: str
     status: str
     source_email_id: str | None = None
+    source_email_received_at: datetime | None = None
     person: PersonOut | None = None
     summary: SummaryOut | None = None
     created_at: datetime

@@ -38,7 +38,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL ?? '/api';
             <p class="summary">${escapeHtml(t.summary?.body ?? '')}</p>
             <p class="meta">
               ${t.person ? `${escapeHtml(t.person.name)} (${escapeHtml(t.person.email ?? 'no email')})` : 'Unassigned'}
-              · ${new Date(t.created_at).toLocaleString()}
+              · ${new Date(t.source_email_received_at ?? t.created_at).toLocaleString()}
             </p>
           </li>`,
           )

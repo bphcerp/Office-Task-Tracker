@@ -5,9 +5,10 @@ from __future__ import annotations
 import asyncio
 import logging
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from email import message_from_bytes
 from email.header import decode_header, make_header
-from email.utils import parseaddr
+from email.utils import parseaddr, parsedate_to_datetime
 
 import imapclient
 from sqlalchemy import select
@@ -28,6 +29,7 @@ class ScrapedEmail:
     subject: str
     body: str
     sender: str
+    received_at: datetime | None = None
 
 
 def _decode_header_value(value: str | None) -> str:
@@ -66,6 +68,32 @@ def _imap_host(host: str) -> str:
     return host.removeprefix("imaps://").removeprefix("imap://").rstrip("/")
 
 
+def _as_utc(dt: datetime) -> datetime:
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
+
+
+def _parse_received_at(
+    message,
+    *,
+    internal_date: datetime | None = None,
+    envelope_date: datetime | None = None,
+) -> datetime | None:
+    # Prefer the sender's Date header; fall back to IMAP server timestamps.
+    date_header = message.get("Date")
+    if date_header:
+        try:
+            return _as_utc(parsedate_to_datetime(date_header))
+        except (TypeError, ValueError):
+            pass
+    if internal_date:
+        return _as_utc(internal_date)
+    if envelope_date:
+        return _as_utc(envelope_date)
+    return None
+
+
 def _scrape_emails_sync(limit: int) -> list[ScrapedEmail]:
     settings = get_settings()
     if not settings.imap_host or not settings.imap_user or not settings.imap_password:
@@ -78,20 +106,29 @@ def _scrape_emails_sync(limit: int) -> list[ScrapedEmail]:
     with imapclient.IMAPClient(host, port=settings.imap_port, ssl=True) as client:
         client.login(settings.imap_user, settings.imap_password)
         client.select_folder(settings.imap_folder)
+        # Only fetch messages without the \Seen flag (unread in the mailbox).
         uids = client.search(["UNSEEN"])
         if not uids:
             return []
 
         for uid in uids[-limit:]:
-            fetched = client.fetch([uid], ["RFC822", "ENVELOPE"])
+            # RFC822 implicitly sets \Seen on the server. We rely on that for now.
+            # later on we might need a better system
+            fetched = client.fetch([uid], ["RFC822", "ENVELOPE", "INTERNALDATE"])
             data = fetched[uid]
             raw = data[b"RFC822"]
             message = message_from_bytes(raw)
+            envelope = data.get(b"ENVELOPE")
 
             message_id = message.get("Message-ID") or f"uid:{uid}"
             subject = _decode_header_value(message.get("Subject"))
             sender = _decode_header_value(message.get("From"))
             body = _extract_body(message)
+            received_at = _parse_received_at(
+                message,
+                internal_date=data.get(b"INTERNALDATE"),
+                envelope_date=envelope.date if envelope else None,
+            )
 
             emails.append(
                 ScrapedEmail(
@@ -99,6 +136,7 @@ def _scrape_emails_sync(limit: int) -> list[ScrapedEmail]:
                     subject=subject,
                     body=body,
                     sender=sender,
+                    received_at=received_at,
                 )
             )
 
@@ -164,6 +202,7 @@ async def ingest_emails(session: AsyncSession, limit: int = 25) -> IngestResult:
             title=result.task_title,
             person_id=person.id if person else None,
             source_email_id=email.message_id,
+            source_email_received_at=email.received_at,
         )
         session.add(task)
         await session.flush()
