@@ -36,6 +36,7 @@ class Task(Base):
     title: Mapped[str] = mapped_column(String(500))
     status: Mapped[str] = mapped_column(String(50), default="todo")
     source_email_id: Mapped[str | None] = mapped_column(String(320), unique=True)
+    source_email_received_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     person_id: Mapped[int | None] = mapped_column(ForeignKey("persons.id", ondelete="SET NULL"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(

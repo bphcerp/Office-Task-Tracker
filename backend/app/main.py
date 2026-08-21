@@ -12,12 +12,15 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.logging_config import configure_logging
+
+configure_logging()
+
 from app.config import get_settings
 from app.db import Base, engine
 from app.jobs import start_scheduler, stop_scheduler
 from app.routers.tasks import router as tasks_router
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
