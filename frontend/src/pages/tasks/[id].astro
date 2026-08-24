@@ -1,0 +1,44 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import PageShell from '../../components/PageShell.astro';
+import TaskDetail from '../../components/TaskDetail.astro';
+import { fetchTask } from '../../lib/api';
+import type { Task } from '../../lib/types';
+
+export const prerender = false;
+
+const { id } = Astro.params;
+
+if (!id) {
+  return Astro.redirect('/');
+}
+
+let task: Task | null = null;
+let error: string | null = null;
+
+try {
+  task = await fetchTask(id);
+} catch (err) {
+  error = err instanceof Error ? err.message : 'Failed to load task';
+}
+
+const pageTitle = task ? `${task.title} · Office Task Tracker` : 'Task · Office Task Tracker';
+---
+
+<Layout title={pageTitle}>
+  <PageShell title="Task details" backHref="/">
+    {
+      error ? (
+        <p class="state state--error">{error}</p>
+      ) : task ? (
+        <TaskDetail task={task} />
+      ) : (
+        <div class="empty-panel">
+          <h2>Task not found</h2>
+          <p class="state">This task may have been removed or the link is invalid.</p>
+          <a class="cta" href="/">Return to task list</a>
+        </div>
+      )
+    }
+  </PageShell>
+</Layout>

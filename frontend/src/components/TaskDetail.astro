@@ -1,0 +1,71 @@
+---
+import type { Task } from '../lib/types';
+import {
+  formatDateTime,
+  formatRelativeTime,
+  formatStatusLabel,
+  statusTone,
+} from '../lib/task-ui';
+
+interface Props {
+  task: Task;
+}
+
+const { task } = Astro.props;
+const tone = statusTone(task.status);
+const receivedAt = task.source_email_received_at ?? task.created_at;
+---
+
+<div class="task-hero">
+  <span class={`badge badge--${tone}`}>{formatStatusLabel(task.status)}</span>
+  <h2 class="task-hero__title">{task.title}</h2>
+  <p class="task-hero__when" title={formatDateTime(receivedAt)}>
+    {formatRelativeTime(receivedAt)}
+  </p>
+</div>
+
+<section class="panel">
+  <h3 class="panel-title">Summary</h3>
+  <p class="task-summary">{task.summary?.body ?? 'No summary available.'}</p>
+</section>
+
+<section class="panel">
+  <h3 class="panel-title">Assigned person</h3>
+  {
+    task.person ? (
+      <div class="task-person">
+        <span class="task-person__avatar" aria-hidden="true">
+          {task.person.name.charAt(0).toUpperCase()}
+        </span>
+        <div>
+          <p class="task-person__name">{task.person.name}</p>
+          <p class="task-person__email">{task.person.email ?? 'No email on file'}</p>
+        </div>
+      </div>
+    ) : (
+      <p class="state">No person was linked to this task.</p>
+    )
+  }
+</section>
+
+<section class="panel">
+  <h3 class="panel-title">Source &amp; timestamps</h3>
+  <dl class="task-meta-grid">
+    <div>
+      <dt>Email received</dt>
+      <dd>{formatDateTime(task.source_email_received_at)}</dd>
+    </div>
+    <div>
+      <dt>Created in tracker</dt>
+      <dd>{formatDateTime(task.created_at)}</dd>
+    </div>
+    <div>
+      <dt>Last updated</dt>
+      <dd>{formatDateTime(task.updated_at)}</dd>
+    </div>
+    <div>
+      <dt>Source email ID</dt>
+      <dd class="mono">{task.source_email_id ?? '—'}</dd>
+    </div>
+  </dl>
+</section>

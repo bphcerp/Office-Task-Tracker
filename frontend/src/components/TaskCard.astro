@@ -1,0 +1,44 @@
+---
+import type { Task } from '../lib/types';
+import {
+  formatRelativeTime,
+  formatStatusLabel,
+  statusTone,
+  truncate,
+} from '../lib/task-ui';
+
+interface Props {
+  task: Task;
+}
+
+const { task } = Astro.props;
+const tone = statusTone(task.status);
+const receivedAt = task.source_email_received_at ?? task.created_at;
+const summary = task.summary?.body ?? '';
+const personLabel = task.person
+  ? `${task.person.name}${task.person.email ? ` · ${task.person.email}` : ''}`
+  : 'Unassigned';
+---
+
+<li>
+  <a class="task-card" href={`/tasks/${task.id}`}>
+    <div class="task-card__row">
+      <h2 class="task-card__title">{task.title}</h2>
+      <span class={`badge badge--${tone}`}>{formatStatusLabel(task.status)}</span>
+    </div>
+    {
+      summary ? (
+        <p class="task-card__summary">{truncate(summary)}</p>
+      ) : (
+        <p class="task-card__summary task-card__summary--empty">No summary</p>
+      )
+    }
+    <p class="task-card__meta">
+      {personLabel}
+      ·
+      <time datetime={receivedAt} title={receivedAt}>
+        {formatRelativeTime(receivedAt)}
+      </time>
+    </p>
+  </a>
+</li>
