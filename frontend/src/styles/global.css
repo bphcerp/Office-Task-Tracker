@@ -51,6 +51,14 @@ a {
   margin-bottom: 1.5rem;
 }
 
+.page-header__row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
 .page-header h1 {
   margin: 0 0 0.25rem;
   font-size: 1.75rem;
@@ -59,6 +67,57 @@ a {
 .page-header .subtitle {
   margin: 0;
   color: var(--muted);
+}
+
+/* ingest */
+
+.ingest {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.35rem;
+}
+
+.ingest__button {
+  padding: 0.5rem 0.9rem;
+  border: 1px solid #0c4a6e;
+  border-radius: var(--radius);
+  background: #0c4a6e;
+  color: var(--accent);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.ingest__button:hover:not(:disabled) {
+  background: #075985;
+  border-color: #075985;
+}
+
+.ingest__button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.ingest__status {
+  margin: 0;
+  font-size: 0.82rem;
+  text-align: right;
+  max-width: 18rem;
+}
+
+.ingest__status--loading {
+  color: var(--muted);
+}
+
+.ingest__status--success {
+  color: #6ee7b7;
+}
+
+.ingest__status--error {
+  color: #f87171;
 }
 
 /* shared UI */

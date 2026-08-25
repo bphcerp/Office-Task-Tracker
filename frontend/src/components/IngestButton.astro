@@ -1,0 +1,47 @@
+<div class="ingest" id="ingest-control">
+  <button type="button" class="ingest__button" data-ingest-trigger>
+    Ingest emails
+  </button>
+  <p class="ingest__status" data-ingest-status hidden></p>
+</div>
+
+<script>
+  import { formatIngestResult, ingestEmails } from '../lib/ingest-client';
+
+  const root = document.getElementById('ingest-control');
+  if (root) {
+    const button = root.querySelector<HTMLButtonElement>('[data-ingest-trigger]');
+    const status = root.querySelector<HTMLElement>('[data-ingest-status]');
+
+    if (button && status) {
+      function setStatus(message: string, type: 'success' | 'error' | 'loading'): void {
+        status.hidden = false;
+        status.textContent = message;
+        status.classList.remove(
+          'ingest__status--success',
+          'ingest__status--error',
+          'ingest__status--loading',
+        );
+        status.classList.add(`ingest__status--${type}`);
+      }
+
+      button.addEventListener('click', async () => {
+        // Ingest is slow (see ingest-client.ts); keep the button disabled until done.
+        button.disabled = true;
+        setStatus('Ingesting…', 'loading');
+
+        try {
+          const result = await ingestEmails();
+          setStatus(formatIngestResult(result), 'success');
+          // Full reload so SSR picks up new tasks. Brief delay lets the user read the
+          // result; tradeoff is client-side search/filter/sort state is reset.
+          window.setTimeout(() => window.location.reload(), 1500);
+        } catch (err) {
+          const message = err instanceof Error ? err.message : 'Ingest failed';
+          setStatus(message, 'error');
+          button.disabled = false;
+        }
+      });
+    }
+  }
+</script>

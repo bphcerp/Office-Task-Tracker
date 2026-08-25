@@ -13,7 +13,7 @@ const { tasks } = Astro.props;
   tasks.length === 0 ? (
     <div class="empty-panel">
       <h2>No tasks yet</h2>
-      <p class="state">Ingest emails from the backend to populate this list.</p>
+      <p class="state">Click <strong>Ingest emails</strong> above to scan your inbox.</p>
     </div>
   ) : (
     <div class="task-browser" id="task-browser">

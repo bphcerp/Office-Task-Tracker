@@ -20,3 +20,9 @@ export interface Task {
   created_at: string;
   updated_at: string;
 }
+
+export interface IngestResult {
+  scraped: number;
+  classified: number;
+  created_tasks: number;
+}

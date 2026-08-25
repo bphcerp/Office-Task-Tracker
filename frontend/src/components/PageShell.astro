@@ -21,8 +21,13 @@ const {
     </a>
   )}
   <header class="page-header">
-    <h1>{title}</h1>
-    {subtitle && <p class="subtitle">{subtitle}</p>}
+    <div class="page-header__row">
+      <div>
+        <h1>{title}</h1>
+        {subtitle && <p class="subtitle">{subtitle}</p>}
+      </div>
+      <slot name="actions" />
+    </div>
   </header>
   <slot />
 </main>

@@ -1,13 +1,13 @@
 import type { Task } from './types';
 
 /** Base URL for server-side API calls (see BACKEND_UPSTREAM in .env.example). */
-function apiBase(): string {
+export function getApiBase(): string {
   const upstream = process.env.BACKEND_UPSTREAM ?? 'http://localhost:8000';
   return `${upstream.replace(/\/$/, '')}/api`;
 }
 
 export async function fetchTasks(): Promise<Task[]> {
-  const res = await fetch(`${apiBase()}/tasks`);
+  const res = await fetch(`${getApiBase()}/tasks`);
   if (!res.ok) {
     throw new Error(`Failed to load tasks (HTTP ${res.status})`);
   }
@@ -15,7 +15,7 @@ export async function fetchTasks(): Promise<Task[]> {
 }
 
 export async function fetchTask(id: string): Promise<Task | null> {
-  const res = await fetch(`${apiBase()}/tasks/${id}`);
+  const res = await fetch(`${getApiBase()}/tasks/${id}`);
   if (res.status === 404) return null;
   if (!res.ok) {
     throw new Error(`Failed to load task (HTTP ${res.status})`);
