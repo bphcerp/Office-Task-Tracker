@@ -18,9 +18,20 @@ const summary = task.summary?.body ?? '';
 const personLabel = task.person
   ? `${task.person.name}${task.person.email ? ` · ${task.person.email}` : ''}`
   : 'Unassigned';
+const searchText = [task.title, summary, task.person?.name, task.person?.email]
+  .filter(Boolean)
+  .join(' ')
+  .toLowerCase();
 ---
 
-<li>
+<li
+  class="task-list__item"
+  data-tone={tone}
+  data-received={receivedAt}
+  data-created={task.created_at}
+  data-title={task.title.toLowerCase()}
+  data-search={searchText}
+>
   <a class="task-card" href={`/tasks/${task.id}`}>
     <div class="task-card__row">
       <h2 class="task-card__title">{task.title}</h2>

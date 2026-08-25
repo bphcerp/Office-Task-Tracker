@@ -16,15 +16,63 @@ const { tasks } = Astro.props;
       <p class="state">Ingest emails from the backend to populate this list.</p>
     </div>
   ) : (
-    <>
+    <div class="task-browser" id="task-browser">
+      <div class="task-toolbar">
+        <label class="task-search">
+          <span class="sr-only">Search tasks</span>
+          <input
+            type="search"
+            data-task-search
+            placeholder="Search title, summary, or person…"
+            autocomplete="off"
+          />
+        </label>
+
+        <label class="task-sort">
+          <span class="task-sort__label">Sort by</span>
+          <select data-task-sort>
+            <option value="received-desc">Newest received</option>
+            <option value="received-asc">Oldest received</option>
+            <option value="created-desc">Recently added</option>
+            <option value="title-asc">Title A–Z</option>
+            <option value="title-desc">Title Z–A</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="task-filters" data-task-filters role="group" aria-label="Filter by status">
+        <button type="button" class="filter-chip is-active" data-status-filter="all" aria-pressed="true">
+          All
+        </button>
+        <button type="button" class="filter-chip" data-status-filter="todo" aria-pressed="false">
+          Todo
+        </button>
+        <button type="button" class="filter-chip" data-status-filter="progress" aria-pressed="false">
+          In progress
+        </button>
+        <button type="button" class="filter-chip" data-status-filter="done" aria-pressed="false">
+          Done
+        </button>
+      </div>
+
       <p class="task-count">
         {tasks.length} task{tasks.length === 1 ? '' : 's'}
       </p>
+
       <ul class="task-list">
         {tasks.map((task) => (
           <TaskCard task={task} />
         ))}
       </ul>
-    </>
+
+      <p class="task-no-results" hidden>No tasks match your search or filters.</p>
+    </div>
   )
 }
+
+<script>
+  import { initTaskBrowser } from '../lib/task-list-client';
+
+  const root = document.getElementById('task-browser');
+  if (root) initTaskBrowser(root);
+</script>
