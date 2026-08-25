@@ -8,7 +8,8 @@ export default defineConfig({
   vite: {
     server: {
       proxy: {
-        // In dev, forward /api calls to the backend container/host.
+        // Optional: forward browser /api calls during dev (e.g. a future ingest button).
+        // SSR data fetching uses BACKEND_UPSTREAM directly in src/lib/api.ts.
         '/api': {
           target: process.env.BACKEND_UPSTREAM ?? 'http://localhost:8000',
           changeOrigin: true,

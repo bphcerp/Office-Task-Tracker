@@ -1,5 +1,6 @@
 import type { Task } from './types';
 
+/** Base URL for server-side API calls (see BACKEND_UPSTREAM in .env.example). */
 function apiBase(): string {
   const upstream = process.env.BACKEND_UPSTREAM ?? 'http://localhost:8000';
   return `${upstream.replace(/\/$/, '')}/api`;

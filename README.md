@@ -66,9 +66,10 @@ Open `.env` and fill in at least:
 - `IMAP_HOST`, `IMAP_USER`, `IMAP_PASSWORD` — mailbox for scraping
 - `LITELLM_MODEL` + a provider key (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, …) for the agent
 
-> `PUBLIC_API_URL` is inlined into the client bundle **at build time**. In dev it defaults to
-> `/api` and the Vite server proxies to the backend automatically. In **prod** set it to the
-> externally reachable backend URL.
+> `BACKEND_UPSTREAM` is the URL the Astro SSR server uses to reach the backend API.
+> Docker Compose sets this automatically (`http://backend:8000` in dev,
+> `http://backend-prod:8000` in prod). For local frontend dev without Docker it
+> defaults to `http://localhost:8000`.
 
 ## Prerequisites
 
