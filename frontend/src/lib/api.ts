@@ -6,6 +6,10 @@ export function getApiBase(): string {
   return `${upstream.replace(/\/$/, '')}/api`;
 }
 
+function isValidTaskId(id: string): boolean {
+  return /^\d+$/.test(id) && Number(id) > 0;
+}
+
 export async function fetchTasks(): Promise<Task[]> {
   const res = await fetch(`${getApiBase()}/tasks`);
   if (!res.ok) {
@@ -15,8 +19,11 @@ export async function fetchTasks(): Promise<Task[]> {
 }
 
 export async function fetchTask(id: string): Promise<Task | null> {
+  if (!isValidTaskId(id)) return null;
+
   const res = await fetch(`${getApiBase()}/tasks/${id}`);
-  if (res.status === 404) return null;
+  // 404 = missing task; 422 = FastAPI rejected a non-integer path param.
+  if (res.status === 404 || res.status === 422) return null;
   if (!res.ok) {
     throw new Error(`Failed to load task (HTTP ${res.status})`);
   }
