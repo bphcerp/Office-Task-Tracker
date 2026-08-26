@@ -4,7 +4,7 @@ import { getApiBase } from '../../../lib/api';
 
 export const prerender = false;
 
-/** Proxy ingest requests to the backend (prod). Dev vite proxy hits the backend directly. */
+/** Proxy browser ingest requests to the backend via BACKEND_UPSTREAM. */
 export const POST: APIRoute = async ({ request }) => {
   const body = await request.text();
 

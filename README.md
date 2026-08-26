@@ -43,7 +43,7 @@ in a web frontend.
 │           ├── mail.py   # IMAP scraping (stub)
 │           └── agent.py  # LLM classification (stub)
 └── frontend/             # Astro (pnpm + Vite)
-    ├── astro.config.mjs  # node adapter + /api dev proxy
+    ├── astro.config.mjs  # node adapter (SSR)
     ├── Dockerfile        # dev / build / prod targets
     └── src/
         ├── pages/index.astro
