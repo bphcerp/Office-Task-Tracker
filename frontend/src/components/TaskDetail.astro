@@ -4,6 +4,8 @@ import {
   formatDateTime,
   formatRelativeTime,
   formatStatusLabel,
+  personDisplayName,
+  personInitial,
   statusTone,
 } from '../lib/task-ui';
 
@@ -35,10 +37,12 @@ const receivedAt = task.source_email_received_at ?? task.created_at;
     task.person ? (
       <div class="task-person">
         <span class="task-person__avatar" aria-hidden="true">
-          {task.person.name.charAt(0).toUpperCase()}
+          {personInitial(task.person.name, task.person.email)}
         </span>
         <div>
-          <p class="task-person__name">{task.person.name}</p>
+          <p class="task-person__name">
+            {personDisplayName(task.person.name, task.person.email)}
+          </p>
           <p class="task-person__email">{task.person.email ?? 'No email on file'}</p>
         </div>
       </div>

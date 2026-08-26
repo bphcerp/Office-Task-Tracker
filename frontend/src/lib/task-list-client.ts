@@ -100,4 +100,6 @@ export function initTaskBrowser(root: HTMLElement): void {
 
     apply();
   });
+
+  apply();
 }

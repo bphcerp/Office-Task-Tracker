@@ -46,3 +46,18 @@ export function truncate(text: string, max = 160): string {
   if (text.length <= max) return text;
   return `${text.slice(0, max).trimEnd()}…`;
 }
+
+export function personInitial(name: string, email?: string | null): string {
+  const trimmed = name.trim();
+  if (trimmed) return trimmed.charAt(0).toUpperCase();
+  const fromEmail = email?.split('@')[0]?.trim();
+  if (fromEmail) return fromEmail.charAt(0).toUpperCase();
+  return '?';
+}
+
+export function personDisplayName(name: string, email?: string | null): string {
+  const trimmed = name.trim();
+  if (trimmed) return trimmed;
+  if (email) return email;
+  return 'Unknown person';
+}

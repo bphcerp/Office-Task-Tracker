@@ -16,7 +16,7 @@ const tone = statusTone(task.status);
 const receivedAt = task.source_email_received_at ?? task.created_at;
 const summary = task.summary?.body ?? '';
 const personLabel = task.person
-  ? `${task.person.name}${task.person.email ? ` · ${task.person.email}` : ''}`
+  ? [task.person.name.trim(), task.person.email].filter(Boolean).join(' · ') || 'Unknown person'
   : 'Unassigned';
 const searchText = [task.title, summary, task.person?.name, task.person?.email]
   .filter(Boolean)
