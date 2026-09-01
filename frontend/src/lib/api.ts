@@ -1,4 +1,5 @@
 import type { Task } from './types';
+import { fetchWithRetry } from './fetch-retry';
 
 /** Base URL for server-side API calls (see BACKEND_UPSTREAM in .env.example). */
 export function getApiBase(): string {
@@ -11,7 +12,7 @@ function isValidTaskId(id: string): boolean {
 }
 
 export async function fetchTasks(): Promise<Task[]> {
-  const res = await fetch(`${getApiBase()}/tasks`);
+  const res = await fetchWithRetry(`${getApiBase()}/tasks`);
   if (!res.ok) {
     throw new Error(`Failed to load tasks (HTTP ${res.status})`);
   }
@@ -21,7 +22,7 @@ export async function fetchTasks(): Promise<Task[]> {
 export async function fetchTask(id: string): Promise<Task | null> {
   if (!isValidTaskId(id)) return null;
 
-  const res = await fetch(`${getApiBase()}/tasks/${id}`);
+  const res = await fetchWithRetry(`${getApiBase()}/tasks/${id}`);
   // 404 = missing task; 422 = FastAPI rejected a non-integer path param.
   if (res.status === 404 || res.status === 422) return null;
   if (!res.ok) {
