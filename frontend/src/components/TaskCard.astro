@@ -1,0 +1,55 @@
+---
+import type { Task } from '../lib/types';
+import {
+  formatRelativeTime,
+  formatStatusLabel,
+  statusTone,
+  truncate,
+} from '../lib/task-ui';
+
+interface Props {
+  task: Task;
+}
+
+const { task } = Astro.props;
+const tone = statusTone(task.status);
+const receivedAt = task.source_email_received_at ?? task.created_at;
+const summary = task.summary?.body ?? '';
+const personLabel = task.person
+  ? [task.person.name.trim(), task.person.email].filter(Boolean).join(' · ') || 'Unknown person'
+  : 'Unassigned';
+const searchText = [task.title, summary, task.person?.name, task.person?.email]
+  .filter(Boolean)
+  .join(' ')
+  .toLowerCase();
+---
+
+<li
+  class="task-list__item"
+  data-tone={tone}
+  data-received={receivedAt}
+  data-created={task.created_at}
+  data-title={task.title.toLowerCase()}
+  data-search={searchText}
+>
+  <a class="task-card" href={`/tasks/${task.id}`}>
+    <div class="task-card__row">
+      <h2 class="task-card__title">{task.title}</h2>
+      <span class={`badge badge--${tone}`}>{formatStatusLabel(task.status)}</span>
+    </div>
+    {
+      summary ? (
+        <p class="task-card__summary">{truncate(summary)}</p>
+      ) : (
+        <p class="task-card__summary task-card__summary--empty">No summary</p>
+      )
+    }
+    <p class="task-card__meta">
+      {personLabel}
+      ·
+      <time datetime={receivedAt} title={receivedAt}>
+        {formatRelativeTime(receivedAt)}
+      </time>
+    </p>
+  </a>
+</li>

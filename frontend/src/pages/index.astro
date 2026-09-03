@@ -1,30 +1,28 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import IngestButton from '../components/IngestButton.astro';
+import PageShell from '../components/PageShell.astro';
 import TaskList from '../components/TaskList.astro';
+import { fetchTasks } from '../lib/api';
+import type { Task } from '../lib/types';
+
+export const prerender = false;
 
 const title = 'Office Task Tracker';
 
-// Dynamic page: the task list is fetched client-side per request.
-export const prerender = false;
+let tasks: Task[] = [];
+let error: string | null = null;
+
+try {
+  tasks = await fetchTasks();
+} catch (err) {
+  error = err instanceof Error ? err.message : 'Failed to load tasks';
+}
 ---
 
 <Layout>
-  <main>
-    <header>
-      <h1>{title}</h1>
-      <p class="muted">Classified office tasks scraped from your inbox.</p>
-    </header>
-    <TaskList />
-  </main>
+  <PageShell title={title} subtitle="Classified office tasks scraped from your inbox.">
+    <IngestButton slot="actions" />
+    {error ? <p class="state state--error">{error}</p> : <TaskList tasks={tasks} />}
+  </PageShell>
 </Layout>
-
-<style>
-  main {
-    max-width: 860px;
-    margin: 0 auto;
-    padding: 2rem 1.5rem;
-  }
-  header { margin-bottom: 1.5rem; }
-  h1 { margin: 0 0 0.25rem; font-size: 1.75rem; }
-  .muted { color: var(--muted); margin: 0; }
-</style>

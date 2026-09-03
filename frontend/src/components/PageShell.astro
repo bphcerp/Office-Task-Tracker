@@ -1,0 +1,33 @@
+---
+interface Props {
+  title: string;
+  subtitle?: string;
+  backHref?: string;
+  backLabel?: string;
+}
+
+const {
+  title,
+  subtitle,
+  backHref,
+  backLabel = 'Back to tasks',
+} = Astro.props;
+---
+
+<main class="shell">
+  {backHref && (
+    <a class="back" href={backHref}>
+      ← {backLabel}
+    </a>
+  )}
+  <header class="page-header">
+    <div class="page-header__row">
+      <div>
+        <h1>{title}</h1>
+        {subtitle && <p class="subtitle">{subtitle}</p>}
+      </div>
+      <slot name="actions" />
+    </div>
+  </header>
+  <slot />
+</main>

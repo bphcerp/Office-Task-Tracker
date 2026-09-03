@@ -1,92 +1,78 @@
 ---
-// Renders a placeholder list; real data is fetched client-side below so that
-// requests go through the browser and hit the dev proxy / public URL.
-const apiUrl = import.meta.env.PUBLIC_API_URL ?? '/api';
+import type { Task } from '../lib/types';
+import TaskCard from './TaskCard.astro';
+
+interface Props {
+  tasks: Task[];
+}
+
+const { tasks } = Astro.props;
 ---
 
-<section class="tasklist" data-api={apiUrl}>
-  <p class="loading">Loading tasks…</p>
-</section>
+{
+  tasks.length === 0 ? (
+    <div class="empty-panel">
+      <h2>No tasks yet</h2>
+      <p class="state">Click <strong>Ingest emails</strong> above to scan your inbox.</p>
+    </div>
+  ) : (
+    <div class="task-browser" id="task-browser">
+      <div class="task-toolbar">
+        <label class="task-search">
+          <span class="sr-only">Search tasks</span>
+          <input
+            type="search"
+            data-task-search
+            placeholder="Search title, summary, or person…"
+            autocomplete="off"
+          />
+        </label>
+
+        <label class="task-sort">
+          <span class="task-sort__label">Sort by</span>
+          <select data-task-sort>
+            <option value="received-desc">Newest received</option>
+            <option value="received-asc">Oldest received</option>
+            <option value="created-desc">Recently added</option>
+            <option value="title-asc">Title A–Z</option>
+            <option value="title-desc">Title Z–A</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="task-filters" data-task-filters role="group" aria-label="Filter by status">
+        <button type="button" class="filter-chip is-active" data-status-filter="all" aria-pressed="true">
+          All
+        </button>
+        <button type="button" class="filter-chip" data-status-filter="todo" aria-pressed="false">
+          Todo
+        </button>
+        <button type="button" class="filter-chip" data-status-filter="progress" aria-pressed="false">
+          In progress
+        </button>
+        <button type="button" class="filter-chip" data-status-filter="done" aria-pressed="false">
+          Done
+        </button>
+      </div>
+
+      <p class="task-count">
+        {tasks.length} task{tasks.length === 1 ? '' : 's'}
+      </p>
+
+      <ul class="task-list">
+        {tasks.map((task) => (
+          <TaskCard task={task} />
+        ))}
+      </ul>
+
+      <p class="task-no-results" hidden>No tasks match your search or filters.</p>
+    </div>
+  )
+}
 
 <script>
-  const section = document.querySelector('.tasklist');
-  const apiUrl = section.dataset.api;
+  import { initTaskBrowser } from '../lib/task-list-client';
 
-  async function load() {
-    try {
-      const res = await fetch(`${apiUrl}/tasks`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const tasks = await res.json();
-      section.innerHTML = render(tasks);
-    } catch (err) {
-      section.innerHTML = `<p class="empty">Failed to load tasks: ${err.message}</p>`;
-    }
-  }
-
-  function render(tasks) {
-    if (!tasks.length) return '<p class="empty">No tasks yet. Ingest emails to get started.</p>';
-    return `
-      <ul class="list">
-        ${tasks
-          .map(
-            (t) => `
-          <li class="card">
-            <div class="row">
-              <h3>${escapeHtml(t.title)}</h3>
-              <span class="status">${escapeHtml(t.status)}</span>
-            </div>
-            <p class="summary">${escapeHtml(t.summary?.body ?? '')}</p>
-            <p class="meta">
-              ${t.person ? `${escapeHtml(t.person.name)} (${escapeHtml(t.person.email ?? 'no email')})` : 'Unassigned'}
-              · ${new Date(t.source_email_received_at ?? t.created_at).toLocaleString()}
-            </p>
-          </li>`,
-          )
-          .join('')}
-      </ul>`;
-  }
-
-  function escapeHtml(value) {
-    return String(value).replace(/[&<>"']/g, (c) => ({
-      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
-    })[c]);
-  }
-
-  load();
+  const root = document.getElementById('task-browser');
+  if (root) initTaskBrowser(root);
 </script>
-
-<style>
-  .list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: grid;
-    gap: 1rem;
-  }
-  .card {
-    background: var(--panel);
-    border: 1px solid #334155;
-    border-radius: 10px;
-    padding: 1rem 1.25rem;
-  }
-  .row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-  }
-  .row h3 { margin: 0; font-size: 1.1rem; }
-  .status {
-    text-transform: uppercase;
-    font-size: 0.7rem;
-    letter-spacing: 0.05em;
-    background: #0c4a6e;
-    color: var(--accent);
-    border-radius: 999px;
-    padding: 0.25rem 0.6rem;
-  }
-  .summary { color: var(--text); margin: 0.5rem 0 0.25rem; }
-  .meta { color: var(--muted); font-size: 0.85rem; margin: 0; }
-  .loading { color: var(--muted); }
-  .empty { color: var(--muted); }
-</style>

@@ -82,7 +82,6 @@ services:
       - .env
     environment:
       BACKEND_UPSTREAM: http://backend:8000
-      PUBLIC_API_URL: /api
     depends_on:
       - backend
     ports:
@@ -93,11 +92,11 @@ services:
     build:
       context: ./frontend
       target: prod
-      args:
-        PUBLIC_API_URL: /api
       network: host
     env_file:
       - .env
+    environment:
+      BACKEND_UPSTREAM: http://backend-prod:8000
     depends_on:
       - backend-prod
     ports:
