@@ -1,5 +1,16 @@
 /** Shared formatting helpers for task views. */
 
+import type { TaskStatusValue } from './types';
+
+export const TASK_STATUS_OPTIONS: ReadonlyArray<{
+  value: TaskStatusValue;
+  label: string;
+}> = [
+  { value: 'todo', label: 'To do' },
+  { value: 'in_progress', label: 'In progress' },
+  { value: 'done', label: 'Done' },
+];
+
 export function statusTone(status: string): 'todo' | 'progress' | 'done' {
   const normalized = status.toLowerCase().replace(/[\s-]+/g, '_');
   if (normalized === 'done' || normalized === 'completed' || normalized === 'complete') {

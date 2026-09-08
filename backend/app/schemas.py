@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
+
+TaskStatus = Literal["todo", "in_progress", "done"]
 
 
 class PersonOut(BaseModel):
@@ -27,13 +30,17 @@ class TaskOut(BaseModel):
 
     id: int
     title: str
-    status: str
+    status: TaskStatus
     source_email_id: str | None = None
     source_email_received_at: datetime | None = None
     person: PersonOut | None = None
     summary: SummaryOut | None = None
     created_at: datetime
     updated_at: datetime
+
+
+class TaskStatusUpdate(BaseModel):
+    status: TaskStatus
 
 
 class IngestRequest(BaseModel):

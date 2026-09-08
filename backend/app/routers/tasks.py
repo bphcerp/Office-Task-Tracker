@@ -9,10 +9,25 @@ from sqlalchemy.orm import selectinload
 
 from app.db import get_session
 from app.models import Task
-from app.schemas import IngestRequest, IngestResult, TaskOut
+from app.schemas import IngestRequest, IngestResult, TaskOut, TaskStatusUpdate
 from app.services.mail import ingest_emails
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
+
+
+async def _get_task_or_404(task_id: int, session: AsyncSession) -> Task:
+    stmt = (
+        select(Task)
+        .where(Task.id == task_id)
+        .options(
+            selectinload(Task.person),
+            selectinload(Task.summary),
+        )
+    )
+    task = (await session.execute(stmt)).scalar_one_or_none()
+    if task is None:
+        raise HTTPException(status_code=404, detail="Task not found")
+    return task
 
 
 @router.get("", response_model=list[TaskOut])
@@ -31,17 +46,19 @@ async def list_tasks(session: AsyncSession = Depends(get_session)) -> list[Task]
 
 @router.get("/{task_id}", response_model=TaskOut)
 async def get_task(task_id: int, session: AsyncSession = Depends(get_session)) -> Task:
-    stmt = (
-        select(Task)
-        .where(Task.id == task_id)
-        .options(
-            selectinload(Task.person),
-            selectinload(Task.summary),
-        )
-    )
-    task = (await session.execute(stmt)).scalar_one_or_none()
-    if task is None:
-        raise HTTPException(status_code=404, detail="Task not found")
+    return await _get_task_or_404(task_id, session)
+
+
+@router.patch("/{task_id}", response_model=TaskOut)
+async def update_task(
+    task_id: int,
+    payload: TaskStatusUpdate,
+    session: AsyncSession = Depends(get_session),
+) -> Task:
+    task = await _get_task_or_404(task_id, session)
+    task.status = payload.status
+    await session.commit()
+    await session.refresh(task)
     return task
 
 

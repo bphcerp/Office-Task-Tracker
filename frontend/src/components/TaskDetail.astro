@@ -7,6 +7,7 @@ import {
   personDisplayName,
   personInitial,
   statusTone,
+  TASK_STATUS_OPTIONS,
 } from '../lib/task-ui';
 
 interface Props {
@@ -19,12 +20,32 @@ const receivedAt = task.source_email_received_at ?? task.created_at;
 ---
 
 <div class="task-hero">
-  <span class={`badge badge--${tone}`}>{formatStatusLabel(task.status)}</span>
+  <span class={`badge badge--${tone}`} data-status-badge>{formatStatusLabel(task.status)}</span>
   <h2 class="task-hero__title">{task.title}</h2>
   <p class="task-hero__when" title={formatDateTime(receivedAt)}>
     {formatRelativeTime(receivedAt)}
   </p>
 </div>
+
+<section class="panel" data-status-editor data-task-id={task.id} data-status={task.status}>
+  <h3 class="panel-title">Status</h3>
+  <div class="status-picker" role="group" aria-label="Task status">
+    {
+      TASK_STATUS_OPTIONS.map((option) => (
+        <button
+          type="button"
+          class={`status-picker__option${option.value === task.status ? ' is-active' : ''}`}
+          data-status-option
+          data-status-value={option.value}
+          aria-pressed={option.value === task.status ? 'true' : 'false'}
+        >
+          {option.label}
+        </button>
+      ))
+    }
+  </div>
+  <p class="status-picker__feedback" data-status-feedback hidden></p>
+</section>
 
 <section class="panel">
   <h3 class="panel-title">Summary</h3>
@@ -65,7 +86,7 @@ const receivedAt = task.source_email_received_at ?? task.created_at;
     </div>
     <div>
       <dt>Last updated</dt>
-      <dd>{formatDateTime(task.updated_at)}</dd>
+      <dd data-updated-at>{formatDateTime(task.updated_at)}</dd>
     </div>
     <div>
       <dt>Source email ID</dt>
@@ -73,3 +94,66 @@ const receivedAt = task.source_email_received_at ?? task.created_at;
     </div>
   </dl>
 </section>
+
+<script>
+  import { updateTaskStatus } from '../lib/task-status-client';
+  import { formatDateTime, formatStatusLabel, statusTone } from '../lib/task-ui';
+  import type { TaskStatusValue } from '../lib/types';
+
+  const editor = document.querySelector<HTMLElement>('[data-status-editor]');
+  if (editor) {
+  const taskId = Number(editor.dataset.taskId);
+  const badge = document.querySelector<HTMLElement>('[data-status-badge]');
+  const feedback = editor.querySelector<HTMLElement>('[data-status-feedback]');
+  const updatedAt = document.querySelector<HTMLElement>('[data-updated-at]');
+  const options = editor.querySelectorAll<HTMLButtonElement>('[data-status-option]');
+
+  function setActiveStatus(status: TaskStatusValue): void {
+    editor.dataset.status = status;
+
+    for (const button of options) {
+      const isActive = button.dataset.statusValue === status;
+      button.classList.toggle('is-active', isActive);
+      button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    }
+
+    if (badge) {
+      badge.textContent = formatStatusLabel(status);
+      badge.classList.remove('badge--todo', 'badge--progress', 'badge--done');
+      badge.classList.add(`badge--${statusTone(status)}`);
+    }
+  }
+
+  for (const button of options) {
+    button.addEventListener('click', async () => {
+      const nextStatus = button.dataset.statusValue as TaskStatusValue;
+      if (nextStatus === editor.dataset.status) return;
+
+      const previousStatus = editor.dataset.status as TaskStatusValue;
+      for (const option of options) option.disabled = true;
+      if (feedback) {
+        feedback.hidden = true;
+        feedback.textContent = '';
+      }
+      setActiveStatus(nextStatus);
+
+      try {
+        const task = await updateTaskStatus(taskId, nextStatus);
+        setActiveStatus(task.status);
+        if (updatedAt) {
+          updatedAt.textContent = formatDateTime(task.updated_at);
+        }
+      } catch (err) {
+        setActiveStatus(previousStatus);
+        if (feedback) {
+          feedback.hidden = false;
+          feedback.textContent =
+            err instanceof Error ? err.message : 'Failed to update status';
+        }
+      } finally {
+        for (const option of options) option.disabled = false;
+      }
+    });
+  }
+  }
+</script>

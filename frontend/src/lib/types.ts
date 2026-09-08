@@ -1,3 +1,5 @@
+export type TaskStatusValue = 'todo' | 'in_progress' | 'done';
+
 export interface Person {
   id: number;
   name: string;
@@ -12,7 +14,7 @@ export interface Summary {
 export interface Task {
   id: number;
   title: string;
-  status: string;
+  status: TaskStatusValue;
   source_email_id: string | null;
   source_email_received_at: string | null;
   person: Person | null;

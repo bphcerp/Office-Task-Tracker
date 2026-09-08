@@ -7,7 +7,7 @@ export function getApiBase(): string {
   return `${upstream.replace(/\/$/, '')}/api`;
 }
 
-function isValidTaskId(id: string): boolean {
+export function isValidTaskId(id: string): boolean {
   return /^\d+$/.test(id) && Number(id) > 0;
 }
 
