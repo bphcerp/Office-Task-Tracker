@@ -1,7 +1,7 @@
 """FastAPI application entrypoint.
 
 Wires routers, creates tables at startup, and starts the background mail
-polling scheduler when MAIL_INGESTION_MODE=background.
+poller from persisted ingestion settings.
 """
 
 from __future__ import annotations
@@ -16,10 +16,11 @@ from app.logging_config import configure_logging
 
 configure_logging()
 
-from app.config import get_settings
-from app.db import Base, engine
-from app.jobs import start_scheduler, stop_scheduler
+from app.db import Base, SessionLocal, engine
+from app.jobs import apply_scheduler_settings, stop_scheduler
+from app.routers.settings import router as settings_router
 from app.routers.tasks import router as tasks_router
+from app.services.ingestion_settings import get_ingestion_settings
 
 logger = logging.getLogger(__name__)
 
@@ -30,9 +31,9 @@ async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-    settings = get_settings()
-    if settings.polling_enabled:
-        start_scheduler()
+    async with SessionLocal() as session:
+        ingestion = await get_ingestion_settings(session)
+        apply_scheduler_settings(ingestion.mode, ingestion.poll_hours)
 
     yield
 
@@ -50,3 +51,4 @@ app.add_middleware(
 )
 
 app.include_router(tasks_router, prefix="/api")
+app.include_router(settings_router, prefix="/api")

@@ -1,4 +1,4 @@
-import type { Task } from './types';
+import type { Task, IngestionSettings } from './types';
 import { fetchWithRetry } from './fetch-retry';
 
 /** Base URL for server-side API calls (see BACKEND_UPSTREAM in .env.example). */
@@ -27,6 +27,14 @@ export async function fetchTask(id: string): Promise<Task | null> {
   if (res.status === 404 || res.status === 422) return null;
   if (!res.ok) {
     throw new Error(`Failed to load task (HTTP ${res.status})`);
+  }
+  return res.json();
+}
+
+export async function fetchIngestionSettings(): Promise<IngestionSettings> {
+  const res = await fetchWithRetry(`${getApiBase()}/settings/ingestion`);
+  if (!res.ok) {
+    throw new Error(`Failed to load ingestion settings (HTTP ${res.status})`);
   }
   return res.json();
 }

@@ -28,3 +28,13 @@ export interface IngestResult {
   classified: number;
   created_tasks: number;
 }
+
+export type IngestionMode = 'background' | 'manual';
+
+export interface IngestionSettings {
+  mode: IngestionMode;
+  mark_as_read: boolean;
+  poll_hours: number;
+  batch_limit: number;
+  updated_at: string;
+}

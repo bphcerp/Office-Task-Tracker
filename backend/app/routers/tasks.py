@@ -68,6 +68,5 @@ async def ingest(
     session: AsyncSession = Depends(get_session),
 ) -> IngestResult:
     """Scrape emails and classify them into tasks (manual trigger)."""
-    limit = payload.limit if payload else 25
-    result = await ingest_emails(session, limit=limit)
-    return result
+    limit = None if payload is None else payload.limit
+    return await ingest_emails(session, limit=limit)

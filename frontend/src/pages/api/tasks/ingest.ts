@@ -11,7 +11,7 @@ export const POST: APIRoute = async ({ request }) => {
   const res = await fetch(`${getApiBase()}/tasks/ingest`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: body || JSON.stringify({ limit: 25 }),
+    body: body || '{}',
   });
 
   return new Response(await res.text(), {

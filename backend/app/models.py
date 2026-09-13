@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, String, Text, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
@@ -60,3 +60,18 @@ class Summary(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     task: Mapped[Task] = relationship(back_populates="summary")
+
+
+class IngestionSettings(Base):
+    """Singleton row (id=1) for runtime ingestion configuration."""
+
+    __tablename__ = "ingestion_settings"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    mode: Mapped[str] = mapped_column(String(20), default="background")
+    mark_as_read: Mapped[bool] = mapped_column(Boolean, default=True)
+    poll_hours: Mapped[int] = mapped_column(Integer, default=1)
+    batch_limit: Mapped[int] = mapped_column(Integer, default=25)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )

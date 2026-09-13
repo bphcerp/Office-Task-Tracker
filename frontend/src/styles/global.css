@@ -146,6 +146,124 @@ a {
   color: var(--color-error);
 }
 
+/* settings */
+
+.settings-link {
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--color-text);
+  text-decoration: none;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.settings-link:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.settings-form__hint {
+  margin: 0.5rem 0 0;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+.settings-form__options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.settings-form__option {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.settings-form__checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.settings-form__field {
+  margin-bottom: 1rem;
+}
+
+.settings-form__field:last-child {
+  margin-bottom: 0;
+}
+
+.settings-form__field label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.settings-form__field input[type='number'] {
+  width: 100%;
+  max-width: 10rem;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+}
+
+.settings-form__field input[type='number']:disabled {
+  opacity: 0.5;
+}
+
+.settings-form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.settings-form__submit {
+  padding: 0.55rem 1rem;
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius);
+  background: var(--color-primary);
+  color: var(--color-primary-fg);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.settings-form__submit:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+
+.settings-form__submit:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.settings-form__feedback {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.settings-form__feedback--success {
+  color: var(--color-success);
+}
+
+.settings-form__feedback--error {
+  color: var(--color-error);
+}
+
 /* shared UI */
 
 .state {

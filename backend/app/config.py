@@ -27,8 +27,10 @@ class Settings(BaseSettings):
 
     # --- API / scheduling ---
     backend_port: int = 8000
-    mail_poll_seconds: int = 60
+    mail_poll_hours: int = 1
     mail_ingestion_mode: str = "background"  # "background" | "manual"
+    mail_mark_as_read: bool = True
+    mail_batch_limit: int = 25
 
     # --- IMAP ---
     imap_host: str = ""
@@ -59,11 +61,6 @@ class Settings(BaseSettings):
                 f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
             )
         return url.replace("postgres://", "postgresql+asyncpg://", 1)
-
-    @property
-    def polling_enabled(self) -> bool:
-        """Whether the APScheduler background job should run."""
-        return self.mail_ingestion_mode == "background"
 
 
 @lru_cache

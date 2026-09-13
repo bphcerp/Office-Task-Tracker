@@ -5,9 +5,12 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 TaskStatus = Literal["todo", "in_progress", "done"]
+
+
+IngestionMode = Literal["background", "manual"]
 
 
 class PersonOut(BaseModel):
@@ -44,12 +47,29 @@ class TaskStatusUpdate(BaseModel):
 
 
 class IngestRequest(BaseModel):
-    """Optional filters for a manual ingestion trigger."""
+    """Optional overrides for a manual ingestion trigger."""
 
-    limit: int = 25
+    limit: int | None = Field(default=None, ge=1, le=100)
 
 
 class IngestResult(BaseModel):
     scraped: int
     classified: int
     created_tasks: int
+
+
+class IngestionSettingsOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    mode: IngestionMode
+    mark_as_read: bool
+    poll_hours: int
+    batch_limit: int
+    updated_at: datetime
+
+
+class IngestionSettingsUpdate(BaseModel):
+    mode: IngestionMode | None = None
+    mark_as_read: bool | None = None
+    poll_hours: int | None = Field(default=None, ge=1, le=168)
+    batch_limit: int | None = Field(default=None, ge=1, le=100)
