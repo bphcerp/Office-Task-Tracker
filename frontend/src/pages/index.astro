@@ -2,7 +2,6 @@
 import Layout from '../layouts/Layout.astro';
 import IngestButton from '../components/IngestButton.astro';
 import PageShell from '../components/PageShell.astro';
-import SettingsLink from '../components/SettingsLink.astro';
 import TaskList from '../components/TaskList.astro';
 import { fetchTasks } from '../lib/api';
 import type { Task } from '../lib/types';
@@ -24,7 +23,7 @@ try {
 <Layout>
   <PageShell title={title} subtitle="Classified office tasks scraped from your inbox.">
     <IngestButton slot="actions" />
-    <SettingsLink slot="actions" />
+    <a class="settings-link" href="/settings" slot="actions">Settings</a>
     {error ? <p class="state state--error">{error}</p> : <TaskList tasks={tasks} />}
   </PageShell>
 </Layout>

@@ -62,6 +62,13 @@ async def update_task(
     return task
 
 
+@router.delete("/{task_id}", status_code=204)
+async def delete_task(task_id: int, session: AsyncSession = Depends(get_session)) -> None:
+    task = await _get_task_or_404(task_id, session)
+    await session.delete(task)
+    await session.commit()
+
+
 @router.post("/ingest", response_model=IngestResult)
 async def ingest(
     payload: IngestRequest | None = None,

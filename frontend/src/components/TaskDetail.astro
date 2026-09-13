@@ -95,65 +95,99 @@ const receivedAt = task.source_email_received_at ?? task.created_at;
   </dl>
 </section>
 
+<section class="task-delete" data-task-delete>
+  <div class="task-delete__content">
+    <h3 class="task-delete__title">Delete task</h3>
+    <p class="task-delete__desc">Permanently remove this task from the tracker. This cannot be undone.</p>
+  </div>
+  <button type="button" class="task-delete__button" data-delete-trigger>Delete</button>
+  <p class="task-delete__feedback" data-delete-feedback hidden></p>
+</section>
+
 <script>
-  import { updateTaskStatus } from '../lib/task-status-client';
+  import { deleteTask, updateTaskStatus } from '../lib/tasks-client';
   import { formatDateTime, formatStatusLabel, statusTone } from '../lib/task-ui';
   import type { TaskStatusValue } from '../lib/types';
 
   const editor = document.querySelector<HTMLElement>('[data-status-editor]');
-  if (editor) {
-  const taskId = Number(editor.dataset.taskId);
-  const badge = document.querySelector<HTMLElement>('[data-status-badge]');
-  const feedback = editor.querySelector<HTMLElement>('[data-status-feedback]');
-  const updatedAt = document.querySelector<HTMLElement>('[data-updated-at]');
-  const options = editor.querySelectorAll<HTMLButtonElement>('[data-status-option]');
+  const taskId = editor ? Number(editor.dataset.taskId) : 0;
 
-  function setActiveStatus(status: TaskStatusValue): void {
-    editor.dataset.status = status;
+  if (editor && taskId) {
+    const badge = document.querySelector<HTMLElement>('[data-status-badge]');
+    const feedback = editor.querySelector<HTMLElement>('[data-status-feedback]');
+    const updatedAt = document.querySelector<HTMLElement>('[data-updated-at]');
+    const options = editor.querySelectorAll<HTMLButtonElement>('[data-status-option]');
+
+    function setActiveStatus(status: TaskStatusValue): void {
+      editor.dataset.status = status;
+
+      for (const button of options) {
+        const isActive = button.dataset.statusValue === status;
+        button.classList.toggle('is-active', isActive);
+        button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      }
+
+      if (badge) {
+        badge.textContent = formatStatusLabel(status);
+        badge.classList.remove('badge--todo', 'badge--progress', 'badge--done');
+        badge.classList.add(`badge--${statusTone(status)}`);
+      }
+    }
 
     for (const button of options) {
-      const isActive = button.dataset.statusValue === status;
-      button.classList.toggle('is-active', isActive);
-      button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
-    }
+      button.addEventListener('click', async () => {
+        const nextStatus = button.dataset.statusValue as TaskStatusValue;
+        if (nextStatus === editor.dataset.status) return;
 
-    if (badge) {
-      badge.textContent = formatStatusLabel(status);
-      badge.classList.remove('badge--todo', 'badge--progress', 'badge--done');
-      badge.classList.add(`badge--${statusTone(status)}`);
+        const previousStatus = editor.dataset.status as TaskStatusValue;
+        for (const option of options) option.disabled = true;
+        if (feedback) {
+          feedback.hidden = true;
+          feedback.textContent = '';
+        }
+        setActiveStatus(nextStatus);
+
+        try {
+          const task = await updateTaskStatus(taskId, nextStatus);
+          setActiveStatus(task.status);
+          if (updatedAt) {
+            updatedAt.textContent = formatDateTime(task.updated_at);
+          }
+        } catch (err) {
+          setActiveStatus(previousStatus);
+          if (feedback) {
+            feedback.hidden = false;
+            feedback.textContent =
+              err instanceof Error ? err.message : 'Failed to update status';
+          }
+        } finally {
+          for (const option of options) option.disabled = false;
+        }
+      });
     }
   }
 
-  for (const button of options) {
-    button.addEventListener('click', async () => {
-      const nextStatus = button.dataset.statusValue as TaskStatusValue;
-      if (nextStatus === editor.dataset.status) return;
+  const deleteRoot = document.querySelector<HTMLElement>('[data-task-delete]');
+  const deleteButton = deleteRoot?.querySelector<HTMLButtonElement>('[data-delete-trigger]');
+  const deleteFeedback = deleteRoot?.querySelector<HTMLElement>('[data-delete-feedback]');
 
-      const previousStatus = editor.dataset.status as TaskStatusValue;
-      for (const option of options) option.disabled = true;
-      if (feedback) {
-        feedback.hidden = true;
-        feedback.textContent = '';
-      }
-      setActiveStatus(nextStatus);
+  if (deleteButton && deleteFeedback && taskId) {
+    deleteButton.addEventListener('click', async () => {
+      if (!window.confirm('Delete this task? This cannot be undone.')) return;
+
+      deleteButton.disabled = true;
+      deleteFeedback.hidden = true;
+      deleteFeedback.textContent = '';
 
       try {
-        const task = await updateTaskStatus(taskId, nextStatus);
-        setActiveStatus(task.status);
-        if (updatedAt) {
-          updatedAt.textContent = formatDateTime(task.updated_at);
-        }
+        await deleteTask(taskId);
+        window.location.href = '/';
       } catch (err) {
-        setActiveStatus(previousStatus);
-        if (feedback) {
-          feedback.hidden = false;
-          feedback.textContent =
-            err instanceof Error ? err.message : 'Failed to update status';
-        }
-      } finally {
-        for (const option of options) option.disabled = false;
+        deleteFeedback.hidden = false;
+        deleteFeedback.textContent =
+          err instanceof Error ? err.message : 'Failed to delete task';
+        deleteButton.disabled = false;
       }
     });
-  }
   }
 </script>
