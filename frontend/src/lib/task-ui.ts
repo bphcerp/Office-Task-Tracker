@@ -31,6 +31,18 @@ export function formatStatusLabel(status: string): string {
   return status.replace(/[_-]+/g, ' ');
 }
 
+export function renderStatusBadge(badge: HTMLElement, status: TaskStatusValue): void {
+  badge.textContent = formatStatusLabel(status);
+  badge.classList.remove('badge--todo', 'badge--progress', 'badge--done');
+  badge.classList.add(`badge--${statusTone(status)}`);
+}
+
+export function setListItemStatus(item: HTMLElement, status: TaskStatusValue): void {
+  item.dataset.tone = statusTone(status);
+  const badge = item.querySelector<HTMLElement>('.badge');
+  if (badge) renderStatusBadge(badge, status);
+}
+
 export function formatDateTime(value: string | null | undefined): string {
   if (!value) return '—';
   return new Date(value).toLocaleString(undefined, {

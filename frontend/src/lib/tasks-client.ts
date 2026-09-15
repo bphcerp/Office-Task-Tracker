@@ -1,4 +1,5 @@
 import type { Task, TaskStatusValue } from './types';
+import { recordTaskStatus } from './task-sync';
 
 export async function updateTaskStatus(
   taskId: number,
@@ -14,7 +15,9 @@ export async function updateTaskStatus(
     throw new Error(`Failed to update status (HTTP ${res.status})`);
   }
 
-  return res.json();
+  const task = (await res.json()) as Task;
+  recordTaskStatus(task.id, task.status);
+  return task;
 }
 
 export async function deleteTask(taskId: number): Promise<void> {

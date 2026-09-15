@@ -1,3 +1,5 @@
+import { applyListPatches, clearStatusPatches } from './task-sync';
+
 export type StatusFilter = 'all' | 'todo' | 'progress' | 'done';
 
 export type SortKey =
@@ -53,7 +55,7 @@ export function initTaskBrowser(root: HTMLElement): void {
   }
 
   const items = () => [...list.querySelectorAll<HTMLLIElement>('.task-list__item')];
-  const total = items().length;
+  let total = items().length;
   let statusFilter: StatusFilter = 'all';
 
   function apply(): void {
@@ -99,6 +101,17 @@ export function initTaskBrowser(root: HTMLElement): void {
     }
 
     apply();
+  });
+
+  window.addEventListener('pageshow', (event) => {
+    if (event.persisted) {
+      if (applyListPatches(root)) {
+        total = items().length;
+        apply();
+      }
+    } else {
+      clearStatusPatches();
+    }
   });
 
   apply();

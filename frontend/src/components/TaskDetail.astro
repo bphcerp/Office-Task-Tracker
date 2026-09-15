@@ -106,7 +106,7 @@ const receivedAt = task.source_email_received_at ?? task.created_at;
 
 <script>
   import { deleteTask, updateTaskStatus } from '../lib/tasks-client';
-  import { formatDateTime, formatStatusLabel, statusTone } from '../lib/task-ui';
+  import { formatDateTime, renderStatusBadge } from '../lib/task-ui';
   import type { TaskStatusValue } from '../lib/types';
 
   const editor = document.querySelector<HTMLElement>('[data-status-editor]');
@@ -128,9 +128,7 @@ const receivedAt = task.source_email_received_at ?? task.created_at;
       }
 
       if (badge) {
-        badge.textContent = formatStatusLabel(status);
-        badge.classList.remove('badge--todo', 'badge--progress', 'badge--done');
-        badge.classList.add(`badge--${statusTone(status)}`);
+        renderStatusBadge(badge, status);
       }
     }
 
