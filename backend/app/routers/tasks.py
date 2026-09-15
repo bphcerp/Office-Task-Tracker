@@ -15,6 +15,13 @@ from app.services.mail import ingest_emails
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
 
+async def _get_task_row_or_404(task_id: int, session: AsyncSession) -> Task:
+    task = (await session.execute(select(Task).where(Task.id == task_id))).scalar_one_or_none()
+    if task is None:
+        raise HTTPException(status_code=404, detail="Task not found")
+    return task
+
+
 async def _get_task_or_404(task_id: int, session: AsyncSession) -> Task:
     stmt = (
         select(Task)
@@ -64,7 +71,7 @@ async def update_task(
 
 @router.delete("/{task_id}", status_code=204)
 async def delete_task(task_id: int, session: AsyncSession = Depends(get_session)) -> None:
-    task = await _get_task_or_404(task_id, session)
+    task = await _get_task_row_or_404(task_id, session)
     await session.delete(task)
     await session.commit()
 
