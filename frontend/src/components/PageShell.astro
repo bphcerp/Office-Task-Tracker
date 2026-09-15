@@ -6,6 +6,8 @@ interface Props {
   backLabel?: string;
 }
 
+import ThemeToggle from './ThemeToggle.astro';
+
 const {
   title,
   subtitle,
@@ -26,7 +28,10 @@ const {
         <h1>{title}</h1>
         {subtitle && <p class="subtitle">{subtitle}</p>}
       </div>
-      <slot name="actions" />
+      <div class="page-header__actions">
+        <ThemeToggle />
+        <slot name="actions" />
+      </div>
     </div>
   </header>
   <slot />

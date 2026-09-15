@@ -17,6 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import get_settings
 from app.models import Person, Summary, Task
 from app.schemas import IngestResult
+from app.services.ingestion_settings import get_ingestion_settings
 
 logger = logging.getLogger(__name__)
 
@@ -94,7 +95,7 @@ def _parse_received_at(
     return None
 
 
-def _scrape_emails_sync(limit: int) -> list[ScrapedEmail]:
+def _scrape_emails_sync(limit: int, mark_as_read: bool) -> list[ScrapedEmail]:
     settings = get_settings()
     if not settings.imap_host or not settings.imap_user or not settings.imap_password:
         logger.warning("IMAP is not configured; skipping mail scrape")
@@ -102,24 +103,24 @@ def _scrape_emails_sync(limit: int) -> list[ScrapedEmail]:
 
     host = _imap_host(settings.imap_host)
     emails: list[ScrapedEmail] = []
+    fetch_parts = (
+        ["RFC822", "ENVELOPE", "INTERNALDATE"]
+        if mark_as_read
+        else ["BODY.PEEK[]", "ENVELOPE", "INTERNALDATE"]
+    )
+    body_key = b"RFC822" if mark_as_read else b"BODY[]"
 
     with imapclient.IMAPClient(host, port=settings.imap_port, ssl=True) as client:
         client.login(settings.imap_user, settings.imap_password)
         client.select_folder(settings.imap_folder)
-        # Only fetch messages without the \Seen flag (unread in the mailbox).
         uids = client.search(["UNSEEN"])
         if not uids:
             return []
 
-        # the uids are ascending per message arrival,
-        # so a higher UID means the message arrived later.
-        # but the uids array may not be ascending, so we need to sort it.
         for uid in sorted(uids)[-limit:]:
-            # RFC822 implicitly sets \Seen on the server. We rely on that for now.
-            # later on we might need a better system
-            fetched = client.fetch([uid], ["RFC822", "ENVELOPE", "INTERNALDATE"])
+            fetched = client.fetch([uid], fetch_parts)
             data = fetched[uid]
-            raw = data[b"RFC822"]
+            raw = data[body_key]
             message = message_from_bytes(raw)
             envelope = data.get(b"ENVELOPE")
 
@@ -146,10 +147,10 @@ def _scrape_emails_sync(limit: int) -> list[ScrapedEmail]:
     return emails
 
 
-async def scrape_emails(limit: int = 25) -> list[ScrapedEmail]:
+async def scrape_emails(limit: int = 25, mark_as_read: bool = True) -> list[ScrapedEmail]:
     """Fetch up to `limit` unread emails from the configured mailbox."""
     try:
-        return await asyncio.to_thread(_scrape_emails_sync, limit)
+        return await asyncio.to_thread(_scrape_emails_sync, limit, mark_as_read)
     except imapclient.exceptions.IMAPClientError:
         logger.exception("IMAP scrape failed")
         return []
@@ -177,13 +178,24 @@ async def _get_or_create_person(
     return None
 
 
-async def ingest_emails(session: AsyncSession, limit: int = 25) -> IngestResult:
+async def ingest_emails(session: AsyncSession, limit: int | None = None) -> IngestResult:
     """Scrape -> classify -> persist a batch of emails as tasks."""
-    emails = await scrape_emails(limit=limit)
+    settings = await get_ingestion_settings(session)
+    effective_limit = limit if limit is not None else settings.batch_limit
+    emails = await scrape_emails(
+        limit=effective_limit,
+        mark_as_read=settings.mark_as_read,
+    )
     classified = 0
     created = 0
 
     for email in emails:
+        existing = await session.execute(
+            select(Task).where(Task.source_email_id == email.message_id)
+        )
+        if existing.scalar_one_or_none():
+            continue
+
         # Lazy import avoids the mail <-> agent circular import.
         from app.services.agent import classify_email
 
@@ -191,12 +203,6 @@ async def ingest_emails(session: AsyncSession, limit: int = 25) -> IngestResult:
         if result is None:
             continue
         classified += 1
-
-        existing = await session.execute(
-            select(Task).where(Task.source_email_id == email.message_id)
-        )
-        if existing.scalar_one_or_none():
-            continue
 
         person = await _get_or_create_person(
             session, result.person_name, result.person_email

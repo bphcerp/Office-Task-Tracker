@@ -1,5 +1,16 @@
 /** Shared formatting helpers for task views. */
 
+import type { TaskStatusValue } from './types';
+
+export const TASK_STATUS_OPTIONS: ReadonlyArray<{
+  value: TaskStatusValue;
+  label: string;
+}> = [
+  { value: 'todo', label: 'To do' },
+  { value: 'in_progress', label: 'In progress' },
+  { value: 'done', label: 'Done' },
+];
+
 export function statusTone(status: string): 'todo' | 'progress' | 'done' {
   const normalized = status.toLowerCase().replace(/[\s-]+/g, '_');
   if (normalized === 'done' || normalized === 'completed' || normalized === 'complete') {
@@ -18,6 +29,18 @@ export function statusTone(status: string): 'todo' | 'progress' | 'done' {
 
 export function formatStatusLabel(status: string): string {
   return status.replace(/[_-]+/g, ' ');
+}
+
+export function renderStatusBadge(badge: HTMLElement, status: TaskStatusValue): void {
+  badge.textContent = formatStatusLabel(status);
+  badge.classList.remove('badge--todo', 'badge--progress', 'badge--done');
+  badge.classList.add(`badge--${statusTone(status)}`);
+}
+
+export function setListItemStatus(item: HTMLElement, status: TaskStatusValue): void {
+  item.dataset.tone = statusTone(status);
+  const badge = item.querySelector<HTMLElement>('.badge');
+  if (badge) renderStatusBadge(badge, status);
 }
 
 export function formatDateTime(value: string | null | undefined): string {
