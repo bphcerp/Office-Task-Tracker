@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 
+from apscheduler.jobstores.base import JobLookupError
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 
@@ -35,12 +36,13 @@ def apply_scheduler_settings(mode: str, poll_hours: int) -> None:
         return
 
     interval_seconds = poll_hours * 3600
+    trigger = IntervalTrigger(seconds=interval_seconds)
     global _scheduler
     if _scheduler is None:
         scheduler = AsyncIOScheduler()
         scheduler.add_job(
             _poll,
-            IntervalTrigger(seconds=interval_seconds),
+            trigger,
             id="mail_poll",
             replace_existing=True,
         )
@@ -49,8 +51,17 @@ def apply_scheduler_settings(mode: str, poll_hours: int) -> None:
         logger.info("Mail polling scheduler started (every %dh)", poll_hours)
         return
 
-    _scheduler.reschedule_job("mail_poll", trigger=IntervalTrigger(seconds=interval_seconds))
-    logger.info("Mail polling scheduler rescheduled (every %dh)", poll_hours)
+    try:
+        _scheduler.reschedule_job("mail_poll", trigger=trigger)
+        logger.info("Mail polling scheduler rescheduled (every %dh)", poll_hours)
+    except JobLookupError:
+        _scheduler.add_job(
+            _poll,
+            trigger,
+            id="mail_poll",
+            replace_existing=True,
+        )
+        logger.info("Mail polling scheduler job added (every %dh)", poll_hours)
 
 
 def stop_scheduler() -> None:

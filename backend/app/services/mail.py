@@ -119,8 +119,14 @@ def _scrape_emails_sync(limit: int, mark_as_read: bool) -> list[ScrapedEmail]:
 
         for uid in sorted(uids)[-limit:]:
             fetched = client.fetch([uid], fetch_parts)
-            data = fetched[uid]
-            raw = data[body_key]
+            data = fetched.get(uid)
+            if not data:
+                logger.warning("IMAP fetch returned no data for uid %s", uid)
+                continue
+            raw = data.get(body_key)
+            if not raw:
+                logger.warning("IMAP fetch missing %s for uid %s", body_key, uid)
+                continue
             message = message_from_bytes(raw)
             envelope = data.get(b"ENVELOPE")
 

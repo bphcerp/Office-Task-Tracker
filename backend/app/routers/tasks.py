@@ -62,11 +62,11 @@ async def update_task(
     payload: TaskStatusUpdate,
     session: AsyncSession = Depends(get_session),
 ) -> Task:
-    task = await _get_task_or_404(task_id, session)
+    task = await _get_task_row_or_404(task_id, session)
     task.status = payload.status
     await session.commit()
-    await session.refresh(task)
-    return task
+    # reloads person and summary as well
+    return await _get_task_or_404(task_id, session)
 
 
 @router.delete("/{task_id}", status_code=204)
