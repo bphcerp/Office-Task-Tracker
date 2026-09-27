@@ -1,11 +1,11 @@
 import type { IngestResult } from './types';
 
-/** POST /api/tasks/ingest. No client timeout — IMAP scrape + LLM per email can take tens of seconds. */
-export async function ingestEmails(limit = 25): Promise<IngestResult> {
+/** POST /api/tasks/ingest. Uses batch_limit from ingestion settings unless overridden. */
+export async function ingestEmails(): Promise<IngestResult> {
   const res = await fetch('/api/tasks/ingest', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ limit }),
+    body: JSON.stringify({}),
   });
 
   if (!res.ok) {

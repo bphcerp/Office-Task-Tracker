@@ -1,0 +1,15 @@
+<button type="button" class="theme-toggle" data-theme-toggle aria-label="Toggle color theme">
+  <span class="theme-toggle__icon theme-toggle__icon--light" aria-hidden="true">☀</span>
+  <span class="theme-toggle__icon theme-toggle__icon--dark" aria-hidden="true">☾</span>
+</button>
+
+<script>
+  import { getTheme, setTheme } from '../lib/theme';
+
+  const button = document.querySelector<HTMLButtonElement>('[data-theme-toggle]');
+  if (button) {
+    button.addEventListener('click', () => {
+      setTheme(getTheme() === 'dark' ? 'light' : 'dark');
+    });
+  }
+</script>

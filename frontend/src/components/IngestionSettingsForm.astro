@@ -1,0 +1,149 @@
+---
+import type { IngestionSettings } from '../lib/types';
+
+interface Props {
+  settings: IngestionSettings;
+}
+
+const { settings } = Astro.props;
+---
+
+<form class="settings-form" data-ingestion-settings>
+  <section class="panel">
+    <h3 class="panel-title">Ingestion mode</h3>
+    <p class="settings-form__hint">
+      Automatic mode polls your inbox on an interval. Manual mode only ingests when you click
+      the button on the task list.
+    </p>
+    <div class="settings-form__options" role="radiogroup" aria-label="Ingestion mode">
+      <label class="settings-form__option">
+        <input
+          type="radio"
+          name="mode"
+          value="background"
+          checked={settings.mode === 'background'}
+        />
+        Automatic
+      </label>
+      <label class="settings-form__option">
+        <input type="radio" name="mode" value="manual" checked={settings.mode === 'manual'} />
+        Manual
+      </label>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h3 class="panel-title">Mailbox behavior</h3>
+    <label class="settings-form__checkbox">
+      <input type="checkbox" name="mark_as_read" checked={settings.mark_as_read} />
+      Mark emails as read after fetching
+    </label>
+    <p class="settings-form__hint">
+      When off, emails stay unread in your mailbox (useful for testing). Already-ingested
+      messages are skipped without calling the LLM.
+    </p>
+  </section>
+
+  <section class="panel">
+    <h3 class="panel-title">Batch options</h3>
+    <div class="settings-form__field">
+      <label for="poll_hours">Poll interval (hours)</label>
+      <input
+        id="poll_hours"
+        name="poll_hours"
+        type="number"
+        min="1"
+        max="168"
+        value={settings.poll_hours}
+        data-poll-input
+      />
+      <p class="settings-form__hint">Only applies in automatic mode.</p>
+    </div>
+    <div class="settings-form__field">
+      <label for="batch_limit">Emails per ingest run</label>
+      <input
+        id="batch_limit"
+        name="batch_limit"
+        type="number"
+        min="1"
+        max="100"
+        value={settings.batch_limit}
+      />
+    </div>
+  </section>
+
+  <div class="settings-form__actions">
+    <button type="submit" class="settings-form__submit">Save settings</button>
+    <p class="settings-form__feedback" data-settings-feedback hidden></p>
+  </div>
+</form>
+
+<script>
+  import { updateIngestionSettings } from '../lib/settings-client';
+  import type { IngestionMode } from '../lib/types';
+
+  const form = document.querySelector<HTMLFormElement>('[data-ingestion-settings]');
+  if (form) {
+    const feedback = form.querySelector<HTMLElement>('[data-settings-feedback]');
+    const pollInput = form.querySelector<HTMLInputElement>('[data-poll-input]');
+    const modeInputs = form.querySelectorAll<HTMLInputElement>('input[name="mode"]');
+
+    function setPollEnabled(): void {
+      const mode = form.querySelector<HTMLInputElement>('input[name="mode"]:checked')?.value;
+      if (pollInput) {
+        pollInput.disabled = mode === 'manual';
+      }
+    }
+
+    for (const input of modeInputs) {
+      input.addEventListener('change', setPollEnabled);
+    }
+    setPollEnabled();
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const submit = form.querySelector<HTMLButtonElement>('[type="submit"]');
+      if (submit) submit.disabled = true;
+      if (feedback) {
+        feedback.hidden = true;
+        feedback.textContent = '';
+      }
+
+      const mode = form.querySelector<HTMLInputElement>('input[name="mode"]:checked')
+        ?.value as IngestionMode;
+      const markAsRead = form.querySelector<HTMLInputElement>('input[name="mark_as_read"]')
+        ?.checked;
+      const pollHours = Number(
+        form.querySelector<HTMLInputElement>('input[name="poll_hours"]')?.value,
+      );
+      const batchLimit = Number(
+        form.querySelector<HTMLInputElement>('input[name="batch_limit"]')?.value,
+      );
+
+      try {
+        await updateIngestionSettings({
+          mode,
+          mark_as_read: markAsRead,
+          poll_hours: pollHours,
+          batch_limit: batchLimit,
+        });
+        if (feedback) {
+          feedback.hidden = false;
+          feedback.textContent = 'Settings saved.';
+          feedback.classList.remove('settings-form__feedback--error');
+          feedback.classList.add('settings-form__feedback--success');
+        }
+      } catch (err) {
+        if (feedback) {
+          feedback.hidden = false;
+          feedback.textContent =
+            err instanceof Error ? err.message : 'Failed to save settings';
+          feedback.classList.remove('settings-form__feedback--success');
+          feedback.classList.add('settings-form__feedback--error');
+        }
+      } finally {
+        if (submit) submit.disabled = false;
+      }
+    });
+  }
+</script>

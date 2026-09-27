@@ -26,6 +26,7 @@ const searchText = [task.title, summary, task.person?.name, task.person?.email]
 
 <li
   class="task-list__item"
+  data-task-id={task.id}
   data-tone={tone}
   data-received={receivedAt}
   data-created={task.created_at}

@@ -1,0 +1,57 @@
+/* Design tokens — semantic names map cleanly to Tailwind theme extension later. */
+
+:root {
+  color-scheme: light;
+
+  --color-bg: #f8fafc;
+  --color-surface: #ffffff;
+  --color-border: #e2e8f0;
+  --color-text: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-muted: #64748b;
+  --color-accent: #0284c7;
+  --color-primary: #0284c7;
+  --color-primary-hover: #0369a1;
+  --color-primary-fg: #ffffff;
+  --color-success: #047857;
+  --color-error: #dc2626;
+
+  --color-badge-todo-bg: #e0f2fe;
+  --color-badge-todo-fg: #0369a1;
+  --color-badge-progress-bg: #fef3c7;
+  --color-badge-progress-fg: #b45309;
+  --color-badge-done-bg: #d1fae5;
+  --color-badge-done-fg: #047857;
+
+  --color-avatar-bg: #e0f2fe;
+  --color-avatar-fg: #0369a1;
+
+  --radius: 0.5rem;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --color-bg: #0f172a;
+  --color-surface: #1e293b;
+  --color-border: #334155;
+  --color-text: #e2e8f0;
+  --color-text-secondary: #cbd5e1;
+  --color-text-muted: #94a3b8;
+  --color-accent: #38bdf8;
+  --color-primary: #0c4a6e;
+  --color-primary-hover: #075985;
+  --color-primary-fg: #38bdf8;
+  --color-success: #6ee7b7;
+  --color-error: #f87171;
+
+  --color-badge-todo-bg: #0c4a6e;
+  --color-badge-todo-fg: #38bdf8;
+  --color-badge-progress-bg: #78350f;
+  --color-badge-progress-fg: #fbbf24;
+  --color-badge-done-bg: #064e3b;
+  --color-badge-done-fg: #34d399;
+
+  --color-avatar-bg: #0c4a6e;
+  --color-avatar-fg: #38bdf8;
+}

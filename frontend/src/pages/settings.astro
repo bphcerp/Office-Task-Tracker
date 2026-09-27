@@ -1,0 +1,30 @@
+---
+import Layout from '../layouts/Layout.astro';
+import IngestionSettingsForm from '../components/IngestionSettingsForm.astro';
+import PageShell from '../components/PageShell.astro';
+import { fetchIngestionSettings } from '../lib/api';
+import type { IngestionSettings } from '../lib/types';
+
+export const prerender = false;
+
+let settings: IngestionSettings | null = null;
+let error: string | null = null;
+
+try {
+  settings = await fetchIngestionSettings();
+} catch (err) {
+  error = err instanceof Error ? err.message : 'Failed to load settings';
+}
+---
+
+<Layout title="Ingestion settings · Office Task Tracker">
+  <PageShell title="Ingestion settings" subtitle="Control how emails are scraped and classified." backHref="/">
+    {
+      error ? (
+        <p class="state state--error">{error}</p>
+      ) : settings ? (
+        <IngestionSettingsForm settings={settings} />
+      ) : null
+    }
+  </PageShell>
+</Layout>

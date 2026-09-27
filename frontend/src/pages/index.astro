@@ -23,6 +23,7 @@ try {
 <Layout>
   <PageShell title={title} subtitle="Classified office tasks scraped from your inbox.">
     <IngestButton slot="actions" />
+    <a class="settings-link" href="/settings" slot="actions">Settings</a>
     {error ? <p class="state state--error">{error}</p> : <TaskList tasks={tasks} />}
   </PageShell>
 </Layout>
